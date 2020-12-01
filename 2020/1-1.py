@@ -205,10 +205,9 @@ doc = """
 
 items = list(int(word) for word in doc.split())
 
-for item in items:
+for i, item in enumerate(items):
     candidate = 2020 - item
 
-    if candidate in items:
+    if candidate in items[i+1:]:
         print("{} + {} = 2020".format(item, 2020-item))  
         print("{} * {} = {}".format(item, 2020-item, (2020-item)*item))  
-        break
