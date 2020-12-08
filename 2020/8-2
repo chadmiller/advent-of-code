@@ -620,10 +620,7 @@ jmp +1"""
 
 
 class Machine:
-
     def __init__(self, invalid):
-        self.accumulator = 0
-        self.program_counter = 0
         self.invalid = invalid
 
     def inst_nop(self, s):
@@ -638,6 +635,9 @@ class Machine:
         self.program_counter += int(s)
 
     def run(self, program_text):
+        self.accumulator = 0
+        self.program_counter = 0
+
         inst_seen = set()
         program = [l.split() for l in program_text.split("\n")]
 
@@ -673,9 +673,8 @@ class Machine:
 
 
 for n in range(len(doc.split("\n"))):
-    m = Machine(n)
     try:
-        m.run(doc)
+        Machine(n).run(doc)
         break
     except ValueError:
         continue

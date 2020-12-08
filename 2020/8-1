@@ -621,10 +621,6 @@ jmp +1"""
 
 class Machine:
 
-    def __init__(self):
-        self.accumulator = 0
-        self.program_counter = 0
-
     def inst_nop(self, s):
         pass
         self.program_counter += 1
@@ -637,6 +633,9 @@ class Machine:
         self.program_counter += int(s)
 
     def run(self, program_text):
+        self.accumulator = 0
+        self.program_counter = 0
+
         inst_seen = set()
         program = [l.split() for l in program_text.split("\n")]
         while True:
