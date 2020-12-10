@@ -158,7 +158,7 @@ doc = """\
 
 from functools import lru_cache
 
-def attach(starting_at, remaining_adapters):
+def attach(remaining_adapters):
     target = max(remaining_adapters)
 
     @lru_cache(maxsize=None)
@@ -167,10 +167,10 @@ def attach(starting_at, remaining_adapters):
             return 1
         return sum(_attach(starting_at + n) for n in range(1, 4) if starting_at + n in remaining_adapters)
 
-    return _attach(starting_at)
+    return _attach(0)
 
 
-assert attach(0, set(map(int, ex1doc.split()))) == 8
-assert attach(0, set(map(int, ex2doc.split()))) == 19208
+assert attach(set(map(int, ex1doc.split()))) == 8
+assert attach(set(map(int, ex2doc.split()))) == 19208
 
-print(attach(0, set(map(int, doc.split()))))
+print(attach(set(map(int, doc.split()))))
