@@ -1,0 +1,24 @@
+#!/usr/bin/python3
+
+exdoc = """\
+939
+7,13,x,x,59,x,31,19"""
+
+doc = """\
+1000509
+17,x,x,x,x,x,x,x,x,x,x,37,x,x,x,x,x,739,x,29,x,x,x,x,x,x,x,x,x,x,13,x,x,x,x,x,x,x,x,x,23,x,x,x,x,x,x,x,971,x,x,x,x,x,x,x,x,x,41,x,x,x,x,x,x,x,x,19"""
+
+
+i = int(doc.split()[0])
+r = [int(v) for v in doc.split()[1].split(",") if v != "x"]
+
+inc = 0
+while True:
+    mods = [(inc+i) % v for v in r]
+    if any(v == 0 for v in mods):
+        break
+    inc += 1
+
+nexts = dict(zip(mods, r))
+
+print(nexts[0] * inc)

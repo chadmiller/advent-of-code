@@ -1,0 +1,16 @@
+#!/usr/bin/env pypy3
+
+def bus_sched(routes):
+    r = [(int(v), n) for n, v in enumerate(routes.split(",")) if v != "x"]
+
+    largest, largest_offset = max((v, n) for v, n in r)
+
+    inc = largest
+    t = 0 - largest_offset
+    while True:
+        if all((t + offset_from_t) % busroute == 0 for busroute, offset_from_t in r):
+            break
+        t += inc
+    return t
+
+print(bus_sched("17,x,x,x,x,x,x,x,x,x,x,37,x,x,x,x,x,739,x,29,x,x,x,x,x,x,x,x,x,x,13,x,x,x,x,x,x,x,x,x,23,x,x,x,x,x,x,x,971,x,x,x,x,x,x,x,x,x,41,x,x,x,x,x,x,x,x,19"))
