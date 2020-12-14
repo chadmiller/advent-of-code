@@ -3,7 +3,7 @@
 def bus_sched(routes):
     r = [(int(v), n) for n, v in enumerate(routes.split(",")) if v != "x"]
 
-    largest, largest_offset = max((v, n) for v, n in r)
+    largest, largest_offset = max(r)
 
     inc = largest
     t = 0 - largest_offset
