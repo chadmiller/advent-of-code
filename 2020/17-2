@@ -1,0 +1,88 @@
+#!/usr/bin/python3
+
+exdoc = """\
+.#.
+..#
+###"""
+
+doc = """\
+##......
+.##...#.
+.#######
+..###.##
+.#.###..
+..#.####
+##.####.
+##..#.##"""
+
+
+def neighbor_count(world, x, y, z, w):
+    count = 0
+    for xd in (-1, 0, 1):
+        for yd in (-1, 0, 1):
+            for zd in (-1, 0, 1):
+                for wd in (-1, 0, 1):
+                    if xd != 0 or yd != 0 or zd != 0 or wd != 0:
+                        cell = world.get(((x+xd),(y+yd),(z+zd),(w+wd)))
+                        if cell == "#":
+                            count += 1
+    return count
+
+
+def play_round(world):
+    new_world = dict()
+    xa, xb, ya, yb, za, zb, wa, wb = bounds(world)
+    for z in range(za-1, zb+1+1):
+        for y in range(ya-1, yb+1+1):
+            for x in range(xa-1, xb+1+1):
+                for w in range(wa-1, wb+1+1):
+                    count = neighbor_count(world, x, y, z, w)
+                    current = world.get((x,y,z,w))
+
+                    if current == "#":
+                        if 2<= count <= 3:
+                            new_world[x,y,z,w] = "#"
+                        else:
+                            pass
+                    else:
+                        if count == 3:
+                            new_world[x,y,z,w] = "#"
+                        else:
+                            pass
+    return new_world
+
+
+def bounds(world):
+    points = world.keys()
+    return min(x for x, y, z, w in points), max(x for x, y, z, w in points), min(y for x, y, z, w in points), max(y for x, y, z, w in points) , min(z for x, y, z, w in points), max(z for x, y, z, w in points) , min(w for x, y, z, w in points), max(w for x, y, z, w in points)
+
+def show_world(world):
+    xa, xb, ya, yb, za, zb, wa, wb = bounds(world)
+    print()
+    for w in range(wa, wb+1):
+        print()
+        for z in range(za, zb+1):
+            print()
+            for y in range(ya, yb+1):
+                print("".join(world.get((x,y,z,w), '.') for x in range(xa, xb+1)))
+
+def play(crosssection, round_count):
+    world = dict()
+    w = 0
+    z = 0
+    for y, line in enumerate(crosssection.split()):
+        for x, c in enumerate(line):
+            world[x,y,z,w] = c
+
+    for n in range(round_count):
+        #show_world(world)
+        world = play_round(world)
+
+    return world
+
+def count_alive(world):
+    return sum(1 for c in world.values() if c == "#")
+
+
+print(count_alive(play(exdoc, 6)))
+print(count_alive(play(doc, 6)))
