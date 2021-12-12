@@ -1,0 +1,128 @@
+#!/usr/bin/python3
+
+from collections import defaultdict
+
+def get_edges(doc):
+    links = defaultdict(list)
+    for line in doc.split("\n"):
+        l, r = line.split("-")
+        links[l].append(r)
+        links[r].append(l)
+
+    return links
+
+def enumerate_paths(edges, so_far):
+    for next_node in edges[so_far[-1]]:
+        if next_node == "start": continue
+        candidate = so_far[:] + [next_node]
+        if next_node == "end":
+            yield candidate
+        else:
+            if next_node.lower() == next_node:
+                dup = list(cave for cave in set(candidate) if cave.lower() == cave and candidate.count(cave) > 1)
+                if len(dup) >= 2:
+                    continue
+                if candidate.count(next_node) > 2:
+                    continue
+
+            yield from enumerate_paths(edges, candidate)
+    
+    
+example_input = """\
+start-A
+start-b
+A-c
+A-b
+b-d
+A-end
+b-end"""
+expected = sorted("""\
+start,A,b,A,b,A,c,A,end
+start,A,b,A,b,A,end
+start,A,b,A,b,end
+start,A,b,A,c,A,b,A,end
+start,A,b,A,c,A,b,end
+start,A,b,A,c,A,c,A,end
+start,A,b,A,c,A,end
+start,A,b,A,end
+start,A,b,d,b,A,c,A,end
+start,A,b,d,b,A,end
+start,A,b,d,b,end
+start,A,b,end
+start,A,c,A,b,A,b,A,end
+start,A,c,A,b,A,b,end
+start,A,c,A,b,A,c,A,end
+start,A,c,A,b,A,end
+start,A,c,A,b,d,b,A,end
+start,A,c,A,b,d,b,end
+start,A,c,A,b,end
+start,A,c,A,c,A,b,A,end
+start,A,c,A,c,A,b,end
+start,A,c,A,c,A,end
+start,A,c,A,end
+start,A,end
+start,b,A,b,A,c,A,end
+start,b,A,b,A,end
+start,b,A,b,end
+start,b,A,c,A,b,A,end
+start,b,A,c,A,b,end
+start,b,A,c,A,c,A,end
+start,b,A,c,A,end
+start,b,A,end
+start,b,d,b,A,c,A,end
+start,b,d,b,A,end
+start,b,d,b,end
+start,b,end""".split("\n"))
+actual = sorted(set(",".join(path) for path in enumerate_paths(get_edges(example_input), ["start"])))
+for item in actual:
+    if item in expected:
+        print("got common", item)
+for item in actual:
+    if item not in expected:
+        print("not expecting", item)
+for item in expected:
+    if item not in actual:
+        print("nogotexpected", item)
+assert expected == actual
+
+example_input = """\
+dc-end
+HN-start
+start-kj
+dc-start
+dc-HN
+LN-dc
+HN-end
+kj-sa
+kj-HN
+kj-dc"""
+actual = sorted(set(",".join(path) for path in enumerate_paths(get_edges(example_input), ["start"])))
+print(len(actual), 103)
+
+problem_input = """\
+LA-sn
+LA-mo
+LA-zs
+end-RD
+sn-mo
+end-zs
+vx-start
+mh-mo
+mh-start
+zs-JI
+JQ-mo
+zs-mo
+start-JQ
+rk-zs
+mh-sn
+mh-JQ
+RD-mo
+zs-JQ
+vx-sn
+RD-sn
+vx-mh
+JQ-vx
+LA-end
+JQ-sn"""
+actual = sorted(set(",".join(path) for path in enumerate_paths(get_edges(problem_input), ["start"])))
+print(len(actual))

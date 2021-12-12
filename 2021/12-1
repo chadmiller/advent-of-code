@@ -1,0 +1,107 @@
+#!/usr/bin/python3
+
+from collections import defaultdict
+
+def get_edges(doc):
+    links = defaultdict(list)
+    for line in doc.split("\n"):
+        l, r = line.split("-")
+        links[l].append(r)
+        links[r].append(l)
+
+    return links
+
+def enumerate_paths(edges, so_far):
+    for next_node in edges[so_far[-1]]:
+        if next_node.lower() == next_node and so_far.count(next_node) > 0:
+            continue
+        if next_node == "end":
+            yield so_far[:] + [next_node]
+        else:
+            yield from enumerate_paths(edges, so_far[:] + [next_node])
+    
+    
+example_input = """\
+start-A
+start-b
+A-c
+A-b
+b-d
+A-end
+b-end"""
+expected = sorted("""\
+start,A,b,A,c,A,end
+start,A,b,A,end
+start,A,b,end
+start,A,c,A,b,A,end
+start,A,c,A,b,end
+start,A,c,A,end
+start,A,end
+start,b,A,c,A,end
+start,b,A,end
+start,b,end""".split("\n"))
+actual = sorted(",".join(path) for path in enumerate_paths(get_edges(example_input), ["start"]))
+assert expected == actual
+
+
+example_input = """\
+dc-end
+HN-start
+start-kj
+dc-start
+dc-HN
+LN-dc
+HN-end
+kj-sa
+kj-HN
+kj-dc"""
+expected = sorted("""\
+start,HN,dc,HN,end
+start,HN,dc,HN,kj,HN,end
+start,HN,dc,end
+start,HN,dc,kj,HN,end
+start,HN,end
+start,HN,kj,HN,dc,HN,end
+start,HN,kj,HN,dc,end
+start,HN,kj,HN,end
+start,HN,kj,dc,HN,end
+start,HN,kj,dc,end
+start,dc,HN,end
+start,dc,HN,kj,HN,end
+start,dc,end
+start,dc,kj,HN,end
+start,kj,HN,dc,HN,end
+start,kj,HN,dc,end
+start,kj,HN,end
+start,kj,dc,HN,end
+start,kj,dc,end""".split("\n"))
+actual = sorted(",".join(path) for path in enumerate_paths(get_edges(example_input), ["start"]))
+assert expected == actual
+
+problem_input = """\
+LA-sn
+LA-mo
+LA-zs
+end-RD
+sn-mo
+end-zs
+vx-start
+mh-mo
+mh-start
+zs-JI
+JQ-mo
+zs-mo
+start-JQ
+rk-zs
+mh-sn
+mh-JQ
+RD-mo
+zs-JQ
+vx-sn
+RD-sn
+vx-mh
+JQ-vx
+LA-end
+JQ-sn"""
+actual = sorted(",".join(path) for path in enumerate_paths(get_edges(problem_input), ["start"]))
+print(len(actual))
