@@ -1,0 +1,84 @@
+#!/usr/bin/python3
+
+import doctest
+
+def flash_all(board, to_flash, flashed):
+    new_to_flash = set()
+    for coord in set(to_flash):
+        if coord in flashed:
+            continue
+
+        x, y = coord
+        board[y][x] = '0'
+        flashed.add((x, y))
+
+        for dy in (-1, 0, 1):
+            for dx  in (-1, 0, 1):
+                nx, ny = x+dx, y+dy
+                if not 0 <= ny < len(board): continue
+                if not 0 <= nx < len(board[0]): continue
+                if (nx, ny) in flashed: continue
+                if board[ny][nx] == '9':
+                    to_flash.add((nx, ny))
+                else:
+                    board[ny][nx] = chr(ord(board[ny][nx])+1)
+
+
+    for coord in flashed:
+        if coord in to_flash:
+            to_flash.remove(coord)
+
+
+def step(board):
+    """
+    >>> step("99 00")
+    ('00 33', ...)
+    >>> step("991 181")
+    ('004 504', ...)
+    >>> step("11111 19991 19191 19991 11111")
+    ('34543 40004 50005 40004 34543', ...)
+    >>> step("34543 40004 50005 40004 34543")
+    ('45654 51115 61116 51115 45654', ...)
+    >>> step("5483143223 2745854711 5264556173 6141336146 6357385478 4167524645 2176841721 6882881134 4846848554 5283751526")
+    ('6594254334 3856965822 6375667284 7252447257 7468496589 5278635756 3287952832 7993992245 5957959665 6394862637', ...)
+    >>> step("0050900866 8500800575 9900000039 9700000041 9935080063 7712300000 7911250009 2211130000 0421125000 0021119000")
+    ('2263031977 0923031697 0032221150 0041111163 0076191174 0053411122 0042361120 5532241122 1532247211 1132230211', ...)
+    """
+    board = list(list(line) for line in board.strip().split())
+    to_flash = set()
+    flashed = set()
+
+    for y, line in enumerate(board):
+        for x, ch in enumerate(line):
+            if board[y][x] == '9':
+                to_flash.add((x, y))
+            board[y][x] = chr(ord(board[y][x])+1)
+
+    while to_flash:
+        flash_all(board, to_flash, flashed)
+    return " ".join("".join(line) for line in board), len(flashed)
+    
+
+
+import doctest
+doctest.testmod(optionflags=doctest.REPORT_UDIFF|doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+
+n = 0
+b = '5483143223 2745854711 5264556173 6141336146 6357385478 4167524645 2176841721 6882881134 4846848554 5283751526'
+sizeofb = len(b.replace(" ", ""))
+while True:
+    b, i = step(b)
+    n += 1
+    if i == sizeofb:
+        print(n)
+        break
+
+n = 0
+b = '5651341452 1381541252 1878435224 6814831535 3883547383 6473548464 1885833658 3732584752 1881546128 5121717776'
+sizeofb = len(b.replace(" ", ""))
+while True:
+    b, i = step(b)
+    n += 1
+    if i == sizeofb:
+        print(n)
+        break
