@@ -1,0 +1,176 @@
+#!/usr/bin/python3
+
+import re
+import doctest
+from collections import Counter
+
+
+actual_data = """\
+KKOSPHCNOCHHHSPOBKVF
+
+NV -> S
+OK -> K
+SO -> N
+FN -> F
+NB -> K
+BV -> K
+PN -> V
+KC -> C
+HF -> N
+CK -> S
+VP -> H
+SK -> C
+NO -> F
+PB -> O
+PF -> P
+VC -> C
+OB -> S
+VF -> F
+BP -> P
+HO -> O
+FF -> S
+NF -> B
+KK -> C
+OC -> P
+OV -> B
+NK -> B
+KO -> C
+OH -> F
+CV -> F
+CH -> K
+SC -> O
+BN -> B
+HS -> O
+VK -> V
+PV -> S
+BO -> F
+OO -> S
+KB -> N
+NS -> S
+BF -> N
+SH -> F
+SB -> S
+PP -> F
+KN -> H
+BB -> C
+SS -> V
+HP -> O
+PK -> P
+HK -> O
+FH -> O
+BC -> N
+FK -> K
+HN -> P
+CC -> V
+FO -> F
+FP -> C
+VO -> N
+SF -> B
+HC -> O
+NN -> K
+FC -> C
+CS -> O
+FV -> P
+HV -> V
+PO -> H
+BH -> F
+OF -> P
+PC -> V
+CN -> O
+HB -> N
+CF -> P
+HH -> K
+VH -> H
+OP -> F
+BK -> S
+SP -> V
+BS -> V
+VB -> C
+NH -> H
+SN -> K
+KH -> F
+OS -> N
+NP -> P
+VN -> V
+KV -> F
+KP -> B
+VS -> F
+NC -> F
+ON -> S
+FB -> C
+SV -> O
+PS -> K
+KF -> H
+CP -> H
+FS -> V
+VV -> H
+CB -> P
+PH -> N
+CO -> N
+KS -> K"""
+
+example_data = """\
+NNCB
+
+CH -> B
+HH -> N
+CB -> H
+NH -> C
+HB -> C
+HC -> B
+HN -> C
+NN -> C
+BH -> H
+NC -> B
+NB -> B
+BN -> B
+BB -> N
+BC -> B
+CC -> N
+CN -> C"""
+
+
+def parse(doc):
+    """
+    >>> parse(example_data)[0]
+    'NNCB'
+    >>> list(sorted(parse(example_data)[1].items()))
+    [('BB', 'N'), ('BC', 'B'), ('BH', 'H'), ('BN', 'B'), ('CB', 'H'), ('CC', 'N'), ('CH', 'B'), ('CN', 'C'), ('HB', 'C'), ('HC', 'B'), ('HH', 'N'), ('HN', 'C'), ('NB', 'B'), ('NC', 'B'), ('NH', 'C'), ('NN', 'C')]
+    """
+    template = None
+    mapping = dict()
+    for line in doc.split("\n"):
+        if template is None:
+            template = line
+        m = re.match("(\w+) -> (\w+)", line)
+        if m:
+            mapping[m.group(1)] = m.group(2)
+    return template, mapping
+        
+
+def insert(template, mapping, limit):
+    for loop in range(limit):
+        was = template
+        template = list()
+        for i in range(len(was)-1):
+            c = mapping.get(was[i]+was[i+1], '')
+            template.append(was[i])
+            template.append(c)
+        template.append(was[-1])
+    return "".join(template)
+
+
+import doctest
+doctest.testmod(optionflags=doctest.REPORT_UDIFF|doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+
+template, mapping = parse(example_data)
+result = insert(template, mapping, 10)
+count = Counter(result).most_common()
+print(count[0], count[-1])
+print(count[0][1] - count[-1][1])
+
+template, mapping = parse(actual_data)
+result = insert(template, mapping, 10)
+count = Counter(result).most_common()
+print(count[0], count[-1])
+print(count[0][1] - count[-1][1])
