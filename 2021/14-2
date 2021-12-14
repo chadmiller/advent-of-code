@@ -151,12 +151,12 @@ def parse(doc):
 def insert(template, mapping, limit):
     """
     >>> insert('NNCB', {'CH': 'B', 'HH': 'N', 'CB': 'H', 'NH': 'C', 'HB': 'C', 'HC': 'B', 'HN': 'C', 'NN': 'C', 'BH': 'H', 'NC': 'B', 'NB': 'B', 'BN': 'B', 'BB': 'N', 'BC': 'B', 'CC': 'N', 'CN': 'C'}, 1).most_common()
-    [('NC', 1), ('CN', 1), ('NB', 1), ('BC', 1), ('CH', 1), ('HB', 1)]
+    [(' N', 1), ('NC', 1), ('CN', 1), ('NB', 1), ('BC', 1), ('CH', 1), ('HB', 1), ('B ', 1)]
     >>> insert('NNCB', {'CH': 'B', 'HH': 'N', 'CB': 'H', 'NH': 'C', 'HB': 'C', 'HC': 'B', 'HN': 'C', 'NN': 'C', 'BH': 'H', 'NC': 'B', 'NB': 'B', 'BN': 'B', 'BB': 'N', 'BC': 'B', 'CC': 'N', 'CN': 'C'}, 4).most_common()
-    [('NB', 9), ('BB', 9), ('BN', 6), ('CB', 5), ('BC', 4), ('CN', 3), ('BH', 3), ('HC', 3), ('CC', 2), ('NC', 1), ('HH', 1), ('HN', 1), ('NH', 1)]
-    >>> "".join(sorted("".join(insert('NNCB', {'CH': 'B', 'HH': 'N', 'CB': 'H', 'NH': 'C', 'HB': 'C', 'HC': 'B', 'HN': 'C', 'NN': 'C', 'BH': 'H', 'NC': 'B', 'NB': 'B', 'BN': 'B', 'BB': 'N', 'BC': 'B', 'CC': 'N', 'CN': 'C'}, 4).elements())))
-    BBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCCCHHHHHNNNNNNNNNNN
-    ""
+    [('NB', 9), ('BB', 9), ('BN', 6), ('CB', 5), ('BC', 4), ('CN', 3), ('BH', 3), ('HC', 3), ('CC', 2), (' N', 1), ('NC', 1), ('HH', 1), ('HN', 1), ('NH', 1), ('B ', 1)]
+
+    >>> sorted(insert('abbccc', {}, 1).items())
+    [(' a', 1), ('ab', 1), ('bb', 1), ('bc', 1), ('c ', 1), ('cc', 2)]
     """
 
     c = Counter()
@@ -175,15 +175,14 @@ def insert(template, mapping, limit):
                 c[r] += count
             else:
                 c[pair] += count
-        print(loop, c)
     return c
 
 
 def digest(pairs):
     """
-    abc
-    >>> digest(Counter(["ab", "ab", "ab", "bc", "bc", "cd"])).most_common()
-    [('b', 5), ('a', 3), ('c', 3), ('d', 1)]
+    This un-does what insert does to counts.
+    >>> sorted(digest(insert('abbccc', {}, 1)).items())
+    [('a', 1), ('b', 2), ('c', 3)]
     """
     singles = Counter()
     for (l, r), count in pairs.items():
@@ -200,13 +199,10 @@ doctest.testmod(optionflags=doctest.REPORT_UDIFF|doctest.NORMALIZE_WHITESPACE|do
 
 template, mapping = parse(example_data)
 count = digest(insert(template, mapping, 40)).most_common()
-print(count)
-print("     got", count[0][0], count[-1][0])
-print("     got", count[0][1], count[-1][1])
-print("expected", 2192039569602, 3849876073)
-print(count[0][1] - count[-1][1], "==", 2188189693529)
+assert count[0] == ('B', 2192039569602)
+assert count[-1] == ('H', 3849876073)
+assert count[0][1] - count[-1][1] == 2188189693529
 
 template, mapping = parse(actual_data)
 count = digest(insert(template, mapping, 40)).most_common()
-print(count[0], count[-1])
 print(count[0][1] - count[-1][1])
