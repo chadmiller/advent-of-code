@@ -130,9 +130,7 @@ def wrap(n):
     >>> wrap(12)
     3
     """
-    while n > 9:
-        n -= 9
-    return n
+    return (n - 1) % 9 + 1
 
 
 def parse(doc):
