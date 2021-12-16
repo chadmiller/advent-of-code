@@ -1,0 +1,127 @@
+#!/usr/bin/python3
+
+import doctest
+import re
+import itertools
+import heapq
+import bisect
+from collections import Counter
+from collections import defaultdict
+from collections import deque
+from collections import namedtuple
+from numba import jit
+from statistics import mean, median, median_low, median_high, mode, multimode
+
+@jit(nopython=True)
+def cmp(l, r): return (l > r) - (l < r)  # works because boolean is integery, t=1, f=0
+
+
+actual_data = """\
+A20D74AFC6C80CEA7002D4009202C7C00A6830029400F500218080C3002D006CC2018658056E7002DC00C600E75002ED6008EDC00D4003E24A13995080513FA309482649458A054C6E00E6008CEF204BA00B080311B21F4101006E1F414846401A55002F53E9525B845AA7A789F089402997AE3AFB1E6264D772D7345C6008D8026200E41D83B19C001088CB04A294ADD64C0129D818F802727FFF3500793FFF9A801A801539F42200DC3801A39C659ACD3FC6E97B4B1E7E94FC1F440219DAFB5BB1648E8821A4FF051801079C379F119AC58ECC011A005567A6572324D9AE6CCD003639ED7F8D33B8840A666B3C67B51388440193E003413A3733B85F2712DEBB59002B930F32A7D0688010096019375300565146801A194844826BB7132008024C8E4C1A69E66108000D39BAD950802B19839F005A56D9A554E74C08028992E95D802D2764D93B27900501340528A7301F2E0D326F274BCAB00F5009A737540916D9A9D1EA7BD849100425D9E3A9802B800D24F669E7691E19CFFE3AF280803440086C318230DCC01E8BF19E33980331D631C593005E80330919D718EFA0E3233AE31DF41C67F5CB5CAC002758D7355DD57277F6BF1864E9BED0F18031A95DDF99EB7CD64626EF54987AE007CCC3C4AE0174CDAD88E65F9094BC4025FB2B82C6295F04100109263E800FA41792BCED1CC3A233C86600B48FFF5E522D780120C9C3D89D8466EFEA019009C9600A880310BE0C47A100761345E85F2D7E4769240287E80272D3CEFF1C693A5A79DFE38D27CCCA75E5D00803039BFF11F401095F714657DC56300574010936491FBEC1D8A4402234E1E68026200CC5B8FF094401C89D12E14B803325DED2B6EA34CA248F2748834D0E18021339D4F962AB005E78AE75D08050E10066114368EE0008542684F0B40010B8AB10630180272E83C01998803104E14415100623E469821160"""
+
+def hexstr_to_nybblebitsstr(s):
+    """
+    >>> str(hexstr_to_nybblebitsstr("074"))
+    '000001110100'
+    """
+    return "".join("{:04b}".format(int(c, 16)) for c in s)
+
+
+def sum_versions(packet):
+    if not hasattr(packet.value, 'count'):
+        return packet.version
+    else:
+        return packet.version + sum(sum_versions(p) for p in packet.value) 
+
+
+class Packet:
+    """
+    >>> Packet(hexstr_to_nybblebitsstr('D2FE28'))
+    packet v=6 t=4 2021
+    >>> len(Packet(hexstr_to_nybblebitsstr('D2FE28')))
+    21
+    >>> Packet(hexstr_to_nybblebitsstr('38006F45291200'))
+    packet v=1 t=6 [packet v=6 t=4 10, packet v=2 t=4 20]
+    >>> Packet(hexstr_to_nybblebitsstr('EE00D40C823060'))
+    packet v=7 t=3 [packet v=2 t=4 1, packet v=4 t=4 2, packet v=1 t=4 3]
+
+    8A004A801A8002F478 represents an operator packet (version 4) which contains
+    an operator packet (version 1) which contains an operator packet (version 5)
+    which contains a literal value (version 6); this packet has a version sum of
+    16.
+    >>> Packet(hexstr_to_nybblebitsstr('8A004A801A8002F478'))
+    packet v=4 ... [packet v=1 ... [packet v=5 ... [packet v=6 ...]]]
+
+    620080001611562C8802118E34 represents an operator packet (version 3) which
+    contains two sub-packets; each sub-packet is an operator packet that
+    contains two literal values. This packet has a version sum of 12.
+    >>> Packet(hexstr_to_nybblebitsstr('620080001611562C8802118E34'))
+    packet ... [packet ... [packet ..., packet ...], packet ... [packet ..., packet ...]]
+
+    C0015000016115A2E0802F182340 has the same structure as the previous
+    example, but the outermost packet uses a different length type ID. This
+    packet has a version sum of 23.
+    >>> Packet(hexstr_to_nybblebitsstr('C0015000016115A2E0802F182340'))
+    packet ... [packet ... [packet ..., packet ...], packet ... [packet ..., packet ...]]
+
+    A0016C880162017C3686B18A3D4780 is an operator packet that contains an
+    operator packet that contains an operator packet that contains five literal
+    values; it has a version sum of 31.
+    >>> Packet(hexstr_to_nybblebitsstr('A0016C880162017C3686B18A3D4780'))
+    packet ... [packet ... [packet ... [packet ..., packet ..., packet ..., packet ..., packet ...]]]
+    """
+
+    def __init__(self, bit_string_repr, δ=0):
+        self.version = int(bit_string_repr[δ+0:δ+3], 2)
+        self.type_id = int(bit_string_repr[δ+3:δ+6], 2)
+
+        if self.type_id == 4:
+            # literals
+            self.value, consumed_by_literal = self.parse_literal(bit_string_repr, δ+6)
+            self.size_used = 3+3+consumed_by_literal
+        else:
+            # operators
+            length_type = bit_string_repr[δ+6]
+            self.value = list()
+            if length_type == '0':
+                payload_size = int(bit_string_repr[δ+7:δ+7+15], 2)
+                assert payload_size <= len(bit_string_repr)-δ, (bit_string_repr[δ+7:δ+7+15], payload_size)
+                while True:
+                    consumed = sum(len(p) for p in self.value)
+                    assert consumed <= payload_size, (consumed, payload_size)
+                    if consumed == payload_size: break
+                    sub = Packet(bit_string_repr, δ+7+15+consumed)
+                    self.value.append(sub)
+                self.size_used = 7+15 + payload_size
+            else:
+                remaining_sub_packets = int(bit_string_repr[δ+7:δ+7+11], 2)
+                for i in range(remaining_sub_packets):
+                    next_packet_at = δ+7+11 + sum(len(p) for p in self.value)
+                    p = Packet(bit_string_repr, next_packet_at)
+                    self.value.append(p)
+                packets_space_occupied = sum(len(p) for p in self.value)
+                self.size_used = 7+11 + packets_space_occupied
+
+    @staticmethod
+    def parse_literal(bit_string_repr, starting_at):
+        accum_bits = list()
+        cursor = starting_at
+        while True:
+            chunk = bit_string_repr[cursor:cursor+5]
+            assert len(chunk) == 5, chunk
+            accum_bits.extend(chunk[1:])
+            if chunk[0] == '0': break
+            cursor += 5
+        return int("".join(accum_bits), 2), cursor+5 - starting_at
+
+            
+    def __repr__(self):
+        return "packet v={} t={} {}".format(self.version, self.type_id, self.value)
+
+    def __len__(self):
+        return self.size_used
+
+import doctest
+doctest.testmod(optionflags=doctest.REPORT_UDIFF|doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+
+print(sum_versions(Packet(hexstr_to_nybblebitsstr(actual_data))))
