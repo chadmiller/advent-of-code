@@ -1,0 +1,40 @@
+#!/usr/bin/python3
+
+import re
+
+def fire(target_x, target_y, dx, dy):
+    initial_dx, initial_dy = dx, dy
+    max_y = 0
+    pos = (0, 0)
+    while pos[1] >= target_y[0] or pos[1] >= target_y[1]:
+        #print(initial_dx, initial_dy, pos)
+        if target_x[0] <= pos[0] <= target_x[1] and target_y[0] <= pos[1] <= target_y[1]:
+            return True, max_y
+        pos = pos[0]+dx, pos[1]+dy
+        max_y = max(max_y, pos[1])
+        dx = max(0, dx-1)
+        dy -= 1
+    return False, max_y
+
+
+highest = (0, 0, 0)
+for dx in range(6,8):
+    for dy in range(6,10):
+        #print()
+        success, max_y = fire((20, 30), (-10, -5), dx, dy)
+        if dx == 6 and dy == 9:
+            print("ex:", success, max_y, dx, dy)
+        else:
+            if success:
+                #print("success", dx, dy)
+                highest = max(highest, (max_y, dx, dy))
+print(highest)
+
+counter = 0
+for dx in range(80):
+    for dy in range(-600, 400):
+        #print()
+        success, max_y = fire((14, 50), (-267, -225), dx, dy)
+        if success:
+            counter += 1
+print(counter)
