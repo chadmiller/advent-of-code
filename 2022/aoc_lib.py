@@ -2,6 +2,7 @@ import re
 import itertools
 import heapq
 import bisect
+from functools import reduce
 from collections import Counter
 from collections import defaultdict
 from collections import deque
@@ -32,6 +33,19 @@ def groups_of_n(source, n):
             yield tuple(i.__next__() for nn in range(n))
         except RuntimeError:
             break
+
+grid_deltas = ((0, -1), (-1, 0), (0, 1), (1, 0))
+
+def visit_grid_cells(grid, on_each):
+    for y, row in enumerate(grid):
+        for x, cell in row:
+            on_each(grid, x, y, row[:x], row[x:], list(r[x] for r in grid[:y]), list(r[x] for r in grid[y:]))
+
+def product(vals):
+    if not vals:
+        raise ValueError("zero values to product")
+    return reduce((lambda a, b: a*b), vals, 1)
+
 
 
 if __name__ == "__main__":
