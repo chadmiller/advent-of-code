@@ -2042,37 +2042,55 @@ def add_coord(left, right):
     return tuple(l+r for l, r in zip(left, right))
 
 
-def solve(raw_data):
+def solve(raw_data, segment_count=1):
     """
-    >>> sorted(solve("R 1\\nD 3"))
-    [(0, 0), (1, 1), (1, 2)]
+    >>> print_board(solve("R 5\\nU 8", 10))
+    #
+    >>> print_board(solve("R 5\\nU 8\\nL 8\\nD 3\\nR 17\\nD 10\\nL 25\\nU 20", 10))
+    #.....................
+    #.............###.....
+    #............#...#....
+    .#..........#.....#...
+    ..#..........#.....#..
+    ...#........#.......#.
+    ....#......#.........#
+    .....#..............#.
+    ......#............#..
+    .......#..........#...
+    ........#........#....
+    .........########.....
+    >>> len(solve("R 5\\nU 8\\nL 8\\nD 3\\nR 17\\nD 10\\nL 25\\nU 20", 10))
+    36
     """
     head = 0, 0
-    tail = head
+    segments = [head for _ in range(segment_count)]
     visited = set()
     for line in raw_data.split("\n"):
         direction, count = line.split()
         count = int(count)
         for _ in range(count):
-            head = movers[direction](*head)
-            tail = add_coord(tail, tail_diff_to_step(head, tail))
-            visited.add(tail)
+            segments[0] = movers[direction](*segments[0])  # head moves
+            for segment_number in range(1, len(segments)):  # tail follows
+                segments[segment_number] = add_coord(segments[segment_number], tail_diff_to_step(segments[segment_number-1], segments[segment_number]))
+            visited.add(segments[-1])  # tail tip recorded
     return visited
     
 
-def tail_diff_to_step(head_pos, tail_pos, min_length=1):
+def tail_diff_to_step(head_pos, tail_pos):
     """
-    >>> tail_diff_to_step((3, 3), (5, 5), 1)
+    >>> tail_diff_to_step((3, 3), (5, 5))
     (-1, -1)
-    >>> tail_diff_to_step((3, 3), (4, 4), 1)
+    >>> tail_diff_to_step((3, 3), (4, 4))
     (0, 0)
-    >>> tail_diff_to_step((3, 3), (5, 4), 1)
+    >>> tail_diff_to_step((3, 3), (5, 4))
     (-1, -1)
-    >>> tail_diff_to_step((3, 3), (3, 3), 1)
+    >>> tail_diff_to_step((3, 3), (3, 3))
     (0, 0)
-    >>> tail_diff_to_step((3, 3), (5, 3), 1)
+    >>> tail_diff_to_step((3, 3), (5, 3))
     (-1, 0)
     """
+
+    min_length = 1
 
     diff_x, diff_y = head_pos[0]-tail_pos[0], head_pos[1]-tail_pos[1]
     if max([abs(diff_x), abs(diff_y)]) <= min_length:
@@ -2081,14 +2099,6 @@ def tail_diff_to_step(head_pos, tail_pos, min_length=1):
     return sign(diff_x), sign(diff_y)
 
 def print_board(visited):
-    """
-    >>> print_board(solve(example_data))
-    ..##.
-    ...##
-    .####
-    ....#
-    ####.
-    """
     min_x = min(x for x, y in visited)
     max_x = max(x for x, y in visited)
     min_y = min(y for x, y in visited)
@@ -2102,4 +2112,4 @@ def print_board(visited):
 import doctest
 doctest.testmod(optionflags=doctest.REPORT_UDIFF|doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
 
-print(len(solve(actual_data)))
+print(len(solve(actual_data, 10)))

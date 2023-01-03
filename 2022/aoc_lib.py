@@ -10,7 +10,6 @@ from collections import namedtuple
 from numba import jit
 from statistics import mean, median, median_low, median_high, mode, multimode
 
-@jit(nopython=True)
 def cmp(l, r):
     """
     >>> cmp("k", "b")
