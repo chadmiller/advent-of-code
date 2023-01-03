@@ -2024,6 +2024,7 @@ movers = {
 
 def sign(n):
     """
+    Returns the signed-ness of the parameter as -1, 0, 1.
     >>> sign(2)
     1
     >>> sign(0)
@@ -2034,12 +2035,13 @@ def sign(n):
     return cmp(n, 0)
 
 
-def add_coord(left, right):
+def add_coord(location, delta):
     """
+    Arithmetic on a coordinate
     >>> add_coord((10, 20), (2, 200))
     (12, 220)
     """
-    return tuple(l+r for l, r in zip(left, right))
+    return tuple(l+r for l, r in zip(location, delta))
 
 
 def solve(raw_data, segment_count=1):
@@ -2062,8 +2064,7 @@ def solve(raw_data, segment_count=1):
     >>> len(solve("R 5\\nU 8\\nL 8\\nD 3\\nR 17\\nD 10\\nL 25\\nU 20", 10))
     36
     """
-    head = 0, 0
-    segments = [head for _ in range(segment_count)]
+    segments = [(0, 0)] * segment_count
     visited = set()
     for line in raw_data.split("\n"):
         direction, count = line.split()
@@ -2078,6 +2079,7 @@ def solve(raw_data, segment_count=1):
 
 def tail_diff_to_step(head_pos, tail_pos):
     """
+    Given a segment head and tail, return what to do to the tail to get it following the head.
     >>> tail_diff_to_step((3, 3), (5, 5))
     (-1, -1)
     >>> tail_diff_to_step((3, 3), (4, 4))
