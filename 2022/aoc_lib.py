@@ -3,7 +3,7 @@ import math
 import itertools
 import heapq
 import bisect
-from functools import reduce
+from functools import reduce, cache, lru_cache
 from collections import Counter
 from collections import defaultdict
 from collections import deque
