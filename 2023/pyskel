@@ -1,0 +1,24 @@
+#!/usr/bin/python3
+
+from aoc_lib import *
+
+actual_data = """\
+"""
+
+example_data = """\
+"""
+
+
+def solve(raw_data):
+    """
+    >>> solve(example_data)
+    expected
+    """
+    for row_number, line in enumerate(raw_data.split("\n")):
+
+
+import doctest
+doctest.testmod(optionflags=doctest.REPORT_UDIFF|doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+
+if actual_data:
+    print(solve(actual_data))
