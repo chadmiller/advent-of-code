@@ -1,0 +1,16 @@
+#!/bin/bash
+
+n=0
+prefix=$(date -d "2 hours hence" +"%d")
+src=pyskel
+while :; do
+	n=$((n + 1))
+	if test -f "$prefix-$n"; then
+		src="$prefix-$n"
+		continue
+	fi
+	cp $src "$prefix-$n"
+	echo "$prefix-$n"
+	vi "$prefix-$n"
+	break
+done
