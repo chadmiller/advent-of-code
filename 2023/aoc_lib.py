@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import re
 import math
 import itertools
@@ -38,8 +40,40 @@ grid_deltas = ((0, -1), (-1, 0), (0, 1), (1, 0))
 
 def visit_grid_cells(grid, on_each):
     for y, row in enumerate(grid):
-        for x, cell in row:
-            on_each(grid, x, y, row[:x], row[x:], list(r[x] for r in grid[:y]), list(r[x] for r in grid[y:]))
+        for x, cell in enumerate(row):
+            on_each(grid, cell, x, y, row[:x], row[x:], list(r[x] for r in grid[:y]), list(r[x] for r in grid[y:]))
+
+
+def visit_each_neighbor(grid, x, y, on_each, skip_self=False):
+   for jy in (y-1, y, y+1):
+        for jx in (x-1, x, x+1):
+            if jy < 0: continue
+            if jy >= len(grid): continue
+            if jx < 0: continue
+            if jx >= len(grid[jy]): continue
+            if skip_self and jx == x and jy == y: continue
+            on_each(grid, jx, jy)
+
+def get_word_at(row, offset, char_matcher):
+    r"""
+    >>> get_word_at("...abcdef..", 5, re.compile(r"\w"))
+    (3, 'abcdef')
+    >>> get_word_at("abcdef.....", 5, re.compile(r"\w"))
+    (0, 'abcdef')
+    >>> get_word_at(".....abcdef", 5, re.compile(r"\w"))
+    (5, 'abcdef')
+    """
+    
+    start = offset
+    end = offset
+
+    while start > 0 and char_matcher.match(row[start-1]) is not None:
+        start -= 1
+
+    while end < len(row)-1 and char_matcher.match(row[end+1]) is not None:
+        end += 1
+
+    return start, row[start:end+1]
 
 def product(vals):
     if not vals:
@@ -51,3 +85,5 @@ def product(vals):
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+
+# vi: et smarttab ts=4 sw=4 :
