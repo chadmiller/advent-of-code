@@ -1,0 +1,55 @@
+#!/usr/bin/python3
+
+from aoc_lib import *
+
+actual_data = """\
+Time:        47     84     74     67
+Distance:   207   1394   1209   1014"""
+
+example_data = """\
+Time:      7  15   30
+Distance:  9  40  200"""
+
+
+def distance(hold_time, race_time):
+    """
+    >>> distance(0, 7)
+    0
+    >>> distance(1, 7)
+    6
+    >>> distance(3, 7)
+    12
+    >>> distance(7, 7)
+    0
+    """
+    return (race_time - hold_time) * hold_time
+
+def beat_races(race_time, winning_distance):
+    """
+    >>> beat_races(7, 9)
+    4
+    >>> beat_races(15, 40)
+    8
+    >>> beat_races(30, 200)
+    9
+    """
+    return sum(1 for experimental_hold_time in range(1, race_time) if distance(experimental_hold_time, race_time) > winning_distance)
+        
+
+def solve(raw_data):
+    """
+    >>> solve(example_data)
+    288
+    """
+    timerow, distancerow = raw_data.split("\n")
+    times = map(int, timerow[10:].split())
+    distances = map(int, distancerow[10:].split())
+
+    return product(beat_races(t, wd) for t, wd in zip(times, distances))
+
+
+import doctest
+doctest.testmod(optionflags=doctest.REPORT_UDIFF|doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+
+if actual_data:
+    print(solve(actual_data))
