@@ -5,7 +5,8 @@ import math
 import itertools
 import heapq
 import bisect
-from functools import reduce, cache, lru_cache
+from itertools import *
+from functools import reduce, cache, lru_cache, cmp_to_key
 from collections import Counter
 from collections import defaultdict
 from collections import deque
@@ -79,6 +80,34 @@ def product(vals):
     if not vals:
         raise ValueError("zero values to product")
     return reduce((lambda a, b: a*b), vals, 1)
+
+
+def poker_hand_key(hand, *ignored, cards=list(reversed("AKQJT98765432"))):
+    """
+    >>> poker_hand_key("Q5QQQ")
+    [(4, 12), (1, 5)]
+    >>> poker_hand_key("T55J5")
+    [(3, 5), (1, 11), (1, 10)]
+    >>> poker_hand_key("KK677")
+    [(2, 13), (2, 7), (1, 6)]
+    >>> poker_hand_key("32T3K")
+    [(2, 3), (1, 13), (1, 10), (1, 2)]
+    >>> poker_hand_key("KTJJT")
+    [(2, 11), (2, 10), (1, 13)]
+    >>> sorted("32T3K T55J5 KK677 KTJJT QQQJA".split(), key=poker_hand_key)
+    ['32T3K', 'KTJJT', 'KK677', 'T55J5', 'QQQJA']
+    >>> sorted("Q5QQQ JJJJJ KKKQJ KKKQQ KQQQQ".split(), key=poker_hand_key, reverse=True)
+    ['JJJJJ', 'KQQQQ', 'Q5QQQ', 'KKKQQ', 'KKKQJ']
+    >>> sorted("23456 789TJ".split(), key=poker_hand_key, reverse=True)
+    ['789TJ', '23456']
+    >>> sorted("77888 77788".split(), key=poker_hand_key, reverse=True)
+    ['77888', '77788']
+    """
+
+    hand = sorted(hand, key=value_order.index)
+    hand_grouped = list(list(g) for k, g in groupby(hand))
+
+    return sorted(list((len(part), value_order.index(part[0])+2) for i, part in enumerate(hand_grouped)), reverse=True)
 
 
 
